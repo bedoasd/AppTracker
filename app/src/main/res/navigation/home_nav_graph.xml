@@ -5,6 +5,10 @@
     android:id="@+id/home_nav_graph.xml"
     app:startDestination="@id/runFragment">
 
+    <action android:id="@+id/action_global_trackingFragment"
+        app:destination="@id/trackFragment"
+        app:launchSingleTop="true"/>
+
     <fragment
         android:id="@+id/runFragment"
         android:name="com.example.trackapp.ui.fragments.RunFragment"
