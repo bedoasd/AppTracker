@@ -83,8 +83,8 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.14.1'
 
     // Google Maps Location Services
-    implementation 'com.google.android.gms:play-services-location:21.0.1'
-    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
 
     //Log
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.0'
