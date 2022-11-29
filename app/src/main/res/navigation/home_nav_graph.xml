@@ -18,8 +18,8 @@
             android:id="@+id/action_runFragment_to_trackFragment"
             app:destination="@id/trackFragment" />
         <action
-            android:id="@+id/action_runFragment_to_settingFragment"
-            app:destination="@id/settingFragment" />
+            android:id="@+id/action_runFragment_to_settingFragment2"
+            app:destination="@id/settingFragment3" />
     </fragment>
     <fragment
         android:id="@+id/trackFragment"
@@ -32,8 +32,14 @@
             />
     </fragment>
     <fragment
-        android:id="@+id/settingFragment"
+        tools:layout="@layout/fragment_setting"
+        android:id="@+id/settingFragment3"
         android:name="com.example.trackapp.ui.fragments.SettingFragment"
-        android:label="fragment_setting"
-        tools:layout="@layout/fragment_setting" />
+        android:label="SettingFragment" >
+
+        <argument android:name="run"
+            app:argType="com.example.trackapp.db.Run" />
+
+    </fragment>
+
 </navigation>

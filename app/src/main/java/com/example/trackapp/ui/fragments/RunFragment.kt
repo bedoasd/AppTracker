@@ -3,6 +3,7 @@ package com.example.trackapp.ui.fragments
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,11 +12,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.trackapp.R
 import com.example.trackapp.adapter.RunAdapter
 import com.example.trackapp.databinding.FragmentRunBinding
+import com.example.trackapp.db.Run
 import com.example.trackapp.db.RunDao
 import com.example.trackapp.other.Constants.Companion.REQUEST_CODE_LOCATION_PERMISSION
 import com.example.trackapp.other.TrackingUtilities
@@ -30,6 +33,9 @@ import pub.devrel.easypermissions.EasyPermissions
 class RunFragment : Fragment() ,EasyPermissions.PermissionCallbacks {
 
     lateinit var binding: FragmentRunBinding
+
+
+
 
     private  val mainViewModel:MainViewModel by viewModels()
     private lateinit var runAdapter: RunAdapter
@@ -63,7 +69,29 @@ class RunFragment : Fragment() ,EasyPermissions.PermissionCallbacks {
         }
 
 
+        runAdapter.setOnItemClickListener {
+
+            Log.e("pos","${it.avgSpeedInKMH}")
+            val action=RunFragmentDirections.actionRunFragmentToSettingFragment2(it)
+            findNavController().navigate(action)
+
+
+            /*val bundle =Bundle().apply {
+                putSerializable("article",it)
+            }
+
+            findNavController().navigate(
+                R.id.action_runFragment_to_settingFragment2
+                ,bundle
+            )
+*/
+
+        }
+
+
     }
+
+
 
     private fun setupRecyclerView() = rvRuns.apply {
         runAdapter = RunAdapter()

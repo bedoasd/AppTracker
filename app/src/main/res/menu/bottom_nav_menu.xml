@@ -5,12 +5,15 @@
         android:icon="@drawable/ic_run"
         android:title="yourRuns" />
 
+<!--
     <item android:id="@+id/statisticsFragment"
         android:icon="@drawable/ic_graph"
         android:title="statistics" />
 
+
     <item android:id="@+id/settingFragment"
-        android:icon="@drawable/ic_settings"
+        android:icon="@drawable/details"
         android:title="settings" />
+-->
 
 </menu>

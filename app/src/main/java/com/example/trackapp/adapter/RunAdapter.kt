@@ -68,6 +68,23 @@ class RunAdapter : RecyclerView.Adapter<RunAdapter.RunViewHolder>() {
 
             tvTime.text=TrackingUtilities.getFormattedStopWatchTime(run.timeInMillis)
 
+
+
+            setOnClickListener{
+                onItemClickListener?.let { it(run) }
+            }
+
+
+
         }
+
+
     }
+
+    private var onItemClickListener : ((Run)->Unit )?=null
+    fun setOnItemClickListener(listener: (Run)->Unit){
+        onItemClickListener=listener
+    }
+
+
 }
