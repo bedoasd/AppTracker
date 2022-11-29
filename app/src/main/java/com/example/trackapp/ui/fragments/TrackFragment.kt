@@ -1,28 +1,50 @@
 package com.example.trackapp.ui.fragments
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import com.example.trackapp.MainActivity
+import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
+
 import com.example.trackapp.R
+import com.example.trackapp.db.Run
+import com.example.trackapp.other.Constants.Companion.ACTION_PAUSE_SERVICE
 import com.example.trackapp.other.Constants.Companion.ACTION_START_OR_RESUME_SERVICE
+import com.example.trackapp.other.Constants.Companion.ACTION_STOP_SERVICE
 import com.example.trackapp.other.Constants.Companion.MAP_VIEW_BUNDLE_KEY
+import com.example.trackapp.other.Constants.Companion.MAP_ZOOM
+import com.example.trackapp.other.Constants.Companion.POLYLINE_COLOR
+import com.example.trackapp.other.Constants.Companion.POLYLINE_WIDTH
+import com.example.trackapp.other.TrackingUtilities
 import com.example.trackapp.services.TrackingService
 import com.example.trackapp.ui.MainViewModel
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_track.*
+import timber.log.Timber
+import java.lang.Math.round
+import java.util.*
+
 
 @AndroidEntryPoint
 class TrackFragment : Fragment() {
 
     private val viewModel: MainViewModel by viewModels()
     private var map: GoogleMap? = null
+
+    private var isTracking = false
+    private var curTimeInMillis = 0L
+
+    private var pathPoints = mutableListOf<MutableList<LatLng>>()
+
 
 
     override fun onCreateView(
@@ -34,23 +56,115 @@ class TrackFragment : Fragment() {
 
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val mapViewBundle = savedInstanceState?.getBundle(MAP_VIEW_BUNDLE_KEY)
         mapView.onCreate(mapViewBundle)
-        btnToggleRun.setOnClickListener{
-            sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
+
+        btnToggleRun.setOnClickListener {
+            toggleRun()
         }
-        mapView.getMapAsync{
+
+        btnFinishRun.setOnClickListener{
+            zoomToWholeTrack()
+            endRunAndSaveToDB()
+        }
+
+        mapView.getMapAsync {
 
             map = it
-
+            addAllPolylines()
         }
 
+        subscribeToObservers()
+
+    }
 
 
 
 
+
+
+
+    private fun moveCameraToUser() {
+        if (pathPoints.isNotEmpty() && pathPoints.last().isNotEmpty()) {
+            map?.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    pathPoints.last().last(),
+                    MAP_ZOOM
+                )
+            )
+        }
+    }
+
+    private fun addAllPolylines() {
+        for (polyline in pathPoints) {
+            val polylineOptions = PolylineOptions()
+                .color(POLYLINE_COLOR)
+                .width(POLYLINE_WIDTH)
+                .addAll(polyline)
+            map?.addPolyline(polylineOptions)
+        }
+    }
+
+
+    private fun addLatestPolyline() {
+        // only add polyline if we have at least two elements in the last polyline
+        if (pathPoints.isNotEmpty() && pathPoints.last().size > 1) {
+            val preLastLatLng = pathPoints.last()[pathPoints.last().size - 2]
+            val lastLatLng = pathPoints.last().last()
+            val polylineOptions = PolylineOptions()
+                .color(POLYLINE_COLOR)
+                .width(POLYLINE_WIDTH)
+                .add(preLastLatLng)
+                .add(lastLatLng)
+
+            map?.addPolyline(polylineOptions)
+        }
+    }
+
+
+    private fun updateTracking(isTracking: Boolean) {
+        this.isTracking = isTracking
+        if (!isTracking) {
+            btnToggleRun.text = "Start"
+            btnFinishRun.visibility = View.VISIBLE
+        } else {
+            btnToggleRun.text = "Stop"
+            btnFinishRun.visibility = View.GONE
+        }
+    }
+
+    private fun subscribeToObservers() {
+        TrackingService.isTracking.observe(viewLifecycleOwner, Observer {
+            updateTracking(it)
+        })
+
+        TrackingService.pathPoints.observe(viewLifecycleOwner, Observer {
+            pathPoints = it
+            addLatestPolyline()
+            moveCameraToUser()
+        })
+        TrackingService.timeRunInMillis.observe(viewLifecycleOwner, Observer {
+            curTimeInMillis = it
+            val formattedTime = TrackingUtilities.getFormattedStopWatchTime(it,true)
+            tvTimer.text = formattedTime
+        })
+
+    }
+
+
+
+
+    @SuppressLint("MissingPermission")
+    private fun toggleRun() {
+        if (isTracking) {
+            sendCommandToService(ACTION_PAUSE_SERVICE)
+        } else {
+            sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
+            Timber.d("Started service")
+        }
     }
 
     private fun sendCommandToService(action: String){
@@ -63,6 +177,55 @@ class TrackFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         mapView?.onSaveInstanceState(outState)
+    }
+
+
+
+    private fun zoomToWholeTrack() {
+        val bounds = LatLngBounds.Builder()
+        for (polyline in pathPoints) {
+            for (point in polyline) {
+                bounds.include(point)
+            }
+        }
+        val width = mapView.width
+        val height = mapView.height
+        map?.moveCamera(
+            CameraUpdateFactory.newLatLngBounds(
+                bounds.build(),
+                width,
+                height,
+                (height * 0.05f).toInt()
+            )
+        )
+    }
+
+    private fun endRunAndSaveToDB() {
+        map?.snapshot { bmp ->
+            var distanceInMeters = 0
+            for (polyline in pathPoints) {
+                distanceInMeters += TrackingUtilities.calculatePolylineLength(polyline).toInt()
+            }
+            val avgSpeed =
+                round((distanceInMeters / 1000f) / (curTimeInMillis / 1000f / 60 / 60) * 10) / 10f
+            val timestamp = Calendar.getInstance().timeInMillis
+            val run =
+                Run(bmp, timestamp, avgSpeed, distanceInMeters, curTimeInMillis)
+            viewModel.insertRun(run)
+            Snackbar.make(
+                requireActivity().findViewById(R.id.rootView),
+                "Run saved successfully.",
+                Snackbar.LENGTH_LONG
+            ).show()
+            stopRun()
+        }
+    }
+
+    private fun stopRun() {
+        Timber.d("STOPPING RUN")
+        tvTimer.text = "00:00:00:00"
+        sendCommandToService(ACTION_STOP_SERVICE)
+        findNavController().navigate(R.id.action_trackFragment_to_runFragment)
     }
 
     override fun onResume() {
@@ -90,5 +253,7 @@ class TrackFragment : Fragment() {
         super.onLowMemory()
         mapView.onLowMemory()
     }
+
+
 
 }

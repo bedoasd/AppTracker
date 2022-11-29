@@ -18,6 +18,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.trackapp.MainActivity
 import com.example.trackapp.R
+import com.example.trackapp.other.Constants
 import com.example.trackapp.other.Constants.Companion.ACTION_PAUSE_SERVICE
 import com.example.trackapp.other.Constants.Companion.ACTION_SHOW_TRACKING_FRAGMENT
 import com.example.trackapp.other.Constants.Companion.ACTION_START_OR_RESUME_SERVICE
@@ -27,6 +28,7 @@ import com.example.trackapp.other.Constants.Companion.LOCATION_UPDATE_INTERVAL
 import com.example.trackapp.other.Constants.Companion.NOTIFICATION_CHANNEL_ID
 import com.example.trackapp.other.Constants.Companion.NOTIFICATION_CHANNEL_NAME
 import com.example.trackapp.other.Constants.Companion.NOTIFICATION_ID
+import com.example.trackapp.other.Constants.Companion.TIMER_UPDATE_INTERVAL
 import com.example.trackapp.other.TrackingUtilities
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -34,6 +36,10 @@ import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
@@ -42,8 +48,12 @@ typealias Polylines = MutableList<Polyline>
 
 class TrackingService :LifecycleService() {
 
+   // val timeRunInMillis = MutableLiveData<Long>()
+    private val timeRunInSeconds = MutableLiveData<Long>()
+
 
     var isFirstRun=true
+    private var serviceKilled = false
 
 
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -51,12 +61,16 @@ class TrackingService :LifecycleService() {
     companion object {
         val isTracking = MutableLiveData<Boolean>()
         val pathPoints = MutableLiveData<Polylines>()
+        val timeRunInMillis = MutableLiveData<Long>()
+
 
     }
 
     private fun postInitialValues() {
         isTracking.postValue(false)
         pathPoints.postValue(mutableListOf())
+        timeRunInSeconds.postValue(0L)
+        timeRunInMillis.postValue(0L)
 
     }
 
@@ -82,22 +96,38 @@ class TrackingService :LifecycleService() {
                         isFirstRun=false
                     }else{
                         Timber.d("Resuming Service......")
+                        startTimer()
 
                     }
 
                 }
                 ACTION_PAUSE_SERVICE -> {
                     Timber.d("Paused Service")
+                    pauseService()
                 }
                 ACTION_STOP_SERVICE -> {
                     Timber.d("Stopped service.")
+                    killService()
+
                 }
             }
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private fun killService() {
+        serviceKilled = true
+        isFirstRun = true
+        pauseService()
+        postInitialValues()
+        stopForeground(true)
+        stopSelf()    }
 
+
+    private fun pauseService(){
+        isTimerEnabled=false
+        isTracking.postValue(false)
+    }
 
     @SuppressLint("MissingPermission")
     private fun updateLocationChecking(isTracking: Boolean) {
@@ -129,13 +159,42 @@ class TrackingService :LifecycleService() {
         override fun onLocationResult(result: LocationResult) {
             super.onLocationResult(result)
             if(isTracking.value!!) {
-                result?.locations?.let { locations ->
+                result.locations.let { locations ->
                     for(location in locations) {
                         addPathPoint(location)
                         Timber.d("New Location : ${location.latitude},${location.longitude}")
                     }
                 }
             }
+        }
+    }
+
+    private var isTimerEnabled = false
+    private var lapTime = 0L // time since we started the timer
+    private var timeRun = 0L // total time of the timer
+    private var timeStarted = 0L // the time when we started the timer
+    private var lastSecondTimestamp = 0L
+
+
+    private fun startTimer() {
+        addEmptyPolyline()
+        isTracking.postValue(true)
+        timeStarted = System.currentTimeMillis()
+        isTimerEnabled = true
+        CoroutineScope(Dispatchers.Main).launch {
+            while (isTracking.value!!) {
+                // time difference between now and time started
+                lapTime = System.currentTimeMillis() - timeStarted
+                // post the new laptime
+                timeRunInMillis.postValue(timeRun + lapTime)
+                // if a new second was reached, we want to update timeRunInSeconds, too
+                if (timeRunInMillis.value!! >= lastSecondTimestamp + 1000L) {
+                    timeRunInSeconds.postValue(timeRunInSeconds.value!! + 1)
+                    lastSecondTimestamp += 1000L
+                }
+                delay(TIMER_UPDATE_INTERVAL)
+            }
+            timeRun += lapTime
         }
     }
 
@@ -160,7 +219,8 @@ class TrackingService :LifecycleService() {
 
 
     private fun startForegroundService() {
-        addEmptyPolyline()
+
+        startTimer()
         isTracking.postValue(true)
 
         Timber.d("TrackingService started.")

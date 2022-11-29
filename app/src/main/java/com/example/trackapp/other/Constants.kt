@@ -1,5 +1,7 @@
 package com.example.trackapp.other
 
+import android.graphics.Color
+
 class Constants {
     companion object{
 
@@ -24,5 +26,13 @@ class Constants {
         // Tracking Options
         const val LOCATION_UPDATE_INTERVAL = 5000L
         const val FASTEST_LOCATION_UPDATE_INTERVAL = 2000L
+        // Map Options
+        const val POLYLINE_COLOR = Color.RED
+        const val POLYLINE_WIDTH = 8f
+        const val MAP_ZOOM = 15f
+
+        // Timer
+        const val TIMER_UPDATE_INTERVAL = 50L
+
     }
 }

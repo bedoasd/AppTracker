@@ -7,12 +7,21 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.trackapp.R
+import com.example.trackapp.adapter.RunAdapter
 import com.example.trackapp.databinding.FragmentRunBinding
+import com.example.trackapp.db.RunDao
 import com.example.trackapp.other.Constants.Companion.REQUEST_CODE_LOCATION_PERMISSION
 import com.example.trackapp.other.TrackingUtilities
+import com.example.trackapp.ui.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_run.*
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
 
@@ -21,6 +30,9 @@ import pub.devrel.easypermissions.EasyPermissions
 class RunFragment : Fragment() ,EasyPermissions.PermissionCallbacks {
 
     lateinit var binding: FragmentRunBinding
+
+    private  val mainViewModel:MainViewModel by viewModels()
+    private lateinit var runAdapter: RunAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,15 +50,30 @@ class RunFragment : Fragment() ,EasyPermissions.PermissionCallbacks {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
+        requestPermissions()
+        setupRecyclerView()
 
+        mainViewModel.runSortedByDate.observe(viewLifecycleOwner, Observer {
+            runAdapter.submitList(it)
+        })
 
         binding.fab.setOnClickListener{
             val action=RunFragmentDirections.actionRunFragmentToTrackFragment()
             findNavController().navigate(action)
         }
-        requestPermissions()
+
 
     }
+
+    private fun setupRecyclerView() = rvRuns.apply {
+        runAdapter = RunAdapter()
+        adapter=runAdapter
+        layoutManager = LinearLayoutManager(requireActivity())
+       // ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(this)
+    }
+
+
+
 
     private fun requestPermissions() {
         if (TrackingUtilities.hasLocationPermissions(requireContext())) {
