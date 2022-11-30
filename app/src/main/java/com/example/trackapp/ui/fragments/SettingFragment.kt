@@ -11,8 +11,13 @@ import com.bumptech.glide.Glide
 import com.example.trackapp.R
 import com.example.trackapp.databinding.FragmentSettingBinding
 import com.example.trackapp.db.Run
+import com.example.trackapp.other.TrackingUtilities
 import com.example.trackapp.ui.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_setting.*
+import kotlinx.android.synthetic.main.item_run.view.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class SettingFragment : Fragment() {
@@ -21,7 +26,7 @@ class SettingFragment : Fragment() {
     lateinit var run: Run
 
 
-    lateinit var  binding:FragmentSettingBinding
+    lateinit var binding: FragmentSettingBinding
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,25 +39,34 @@ class SettingFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        binding= FragmentSettingBinding.inflate(inflater, container, false)
+        binding = FragmentSettingBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
 
-        run=args.run
+        run = args.run
 
-        binding.tvDate.text = run.timestamp.toString()
-        binding.tvTime.text = run.timeInMillis.toString()
-        binding.tvDate.text = run.distanceInMeters.toString()
-        binding.tvAvgSpeed.text = run.avgSpeedInKMH.toString()
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = run.timestamp
+        }
+        val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.getDefault())
+        binding.tvDate.text = dateFormat.format(calendar.time)
+        binding.tvTime.text = TrackingUtilities.getFormattedStopWatchTime(run.timeInMillis)
+        binding.tvDistance.text =  "${run.distanceInMeters / 1000f}km"
+        binding.tvAvgSpeed.text = "${run.avgSpeedInKMH}km/h"
+
+
 
         Glide.with(this).load(run.img).into(binding.ivRunImage)
 
-
-
     }
+
+
+
+
+
 
 
 

@@ -26,6 +26,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_track.*
@@ -44,6 +45,7 @@ class TrackFragment : Fragment() {
     private var curTimeInMillis = 0L
 
     private var pathPoints = mutableListOf<MutableList<LatLng>>()
+    private var menu: Menu? = null
 
 
 
@@ -51,6 +53,7 @@ class TrackFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        setHasOptionsMenu(true)
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_track, container, false)
 
@@ -84,7 +87,46 @@ class TrackFragment : Fragment() {
 
 
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.tool_bar_menu_tracking, menu)
+        this.menu = menu
+    }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        // just checking for isTracking doesnt trigger this when rotating the device
+        // in paused mode
+        if (curTimeInMillis > 0L) {
+            this.menu?.getItem(0)?.isVisible = true
+        }
+    }
+
+    private fun showCancelTrackingDialog() {
+        val dialog= MaterialAlertDialogBuilder(requireContext(),R.style.AlertDialogTheme)
+            .setTitle("Cancel Dialog")
+            .setMessage("Are u sure to cancel this run and delete all it's data?")
+            .setIcon(R.drawable.ic_close_white)
+            .setPositiveButton("Yes") { _,_, ->
+                stopRun()
+            }
+            .setNegativeButton("No"){dialogInterface,_, ->
+                dialogInterface.cancel()
+
+            }
+            .create()
+        dialog.show()
+
+            }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.miCancelTracking -> {
+                showCancelTrackingDialog()
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
 
     private fun moveCameraToUser() {
@@ -127,11 +169,12 @@ class TrackFragment : Fragment() {
 
     private fun updateTracking(isTracking: Boolean) {
         this.isTracking = isTracking
-        if (!isTracking) {
-            btnToggleRun.text = "Start"
+        if (!isTracking && curTimeInMillis > 0L) {
+            btnToggleRun.text = getString(R.string.start)
             btnFinishRun.visibility = View.VISIBLE
-        } else {
-            btnToggleRun.text = "Stop"
+        } else if (isTracking) {
+            btnToggleRun.text="stop"
+            menu?.getItem(0)?.isVisible = true
             btnFinishRun.visibility = View.GONE
         }
     }
@@ -160,6 +203,7 @@ class TrackFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun toggleRun() {
         if (isTracking) {
+            menu?.getItem(0)?.isVisible=true
             sendCommandToService(ACTION_PAUSE_SERVICE)
         } else {
             sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
