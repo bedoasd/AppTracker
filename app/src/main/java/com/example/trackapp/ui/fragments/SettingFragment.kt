@@ -57,6 +57,9 @@ class SettingFragment : Fragment() {
         binding.tvDistance.text =  "${run.distanceInMeters / 1000f}km"
         binding.tvAvgSpeed.text = "${run.avgSpeedInKMH}km/h"
 
+        binding.tvsteps.text = "${run.distanceInMeters/.9f} ${"steps"}"
+
+
 
 
         Glide.with(this).load(run.img).into(binding.ivRunImage)

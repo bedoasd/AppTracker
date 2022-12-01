@@ -21,93 +21,127 @@
 
             />
 
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Date :"
-            android:layout_marginTop="20dp"
-            android:textSize="20sp"
-            android:layout_below="@id/ivRunImage" />
+     <ScrollView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_below="@id/ivRunImage"
+         >
+         <RelativeLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content">
+
+             <TextView
+                 android:id="@+id/date"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:text="Date :"
+                 android:layout_marginTop="20dp"
+                 android:textSize="20sp"
+                 android:layout_below="@id/ivRunImage" />
 
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="DATE"
-            android:layout_below="@id/ivRunImage"
-            android:layout_toEndOf="@id/date"
-            android:textSize="20sp"
-            android:layout_marginStart="15dp" />
+             <com.google.android.material.textview.MaterialTextView
+                 android:id="@+id/tvDate"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginTop="20dp"
+                 android:text="DATE"
+                 android:layout_below="@id/ivRunImage"
+                 android:layout_toEndOf="@id/date"
+                 android:textSize="20sp"
+                 android:layout_marginStart="15dp" />
 
 
-        <TextView
-            android:id="@+id/time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Time :"
-            android:layout_marginTop="20dp"
-            android:textSize="20sp"
-            android:layout_below="@id/date" />
+             <TextView
+                 android:id="@+id/time"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:text="Time :"
+                 android:layout_marginTop="20dp"
+                 android:textSize="20sp"
+                 android:layout_below="@id/date" />
 
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="TIME"
-            android:textSize="20sp"
-            android:layout_below="@id/date"
-            android:layout_toEndOf="@id/time"
-            android:layout_marginStart="15dp"
+             <com.google.android.material.textview.MaterialTextView
+                 android:id="@+id/tvTime"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginTop="20dp"
+                 android:text="TIME"
+                 android:textSize="20sp"
+                 android:layout_below="@id/date"
+                 android:layout_toEndOf="@id/time"
+                 android:layout_marginStart="15dp"
 
-            />
-
-
-        <TextView
-            android:id="@+id/distance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Distance :"
-            android:layout_marginTop="20dp"
-            android:textSize="20sp"
-            android:layout_below="@id/time" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvDistance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="DISTANCE"
-            android:layout_below="@id/time"
-            android:layout_toEndOf="@id/distance"
-            android:layout_marginStart="15dp"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/avgspeed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="AvG Speed :"
-            android:layout_marginTop="20dp"
-            android:textSize="20sp"
-            android:layout_below="@id/distance" />
+                 />
 
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvAvgSpeed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="AVGSPEED"
-            android:layout_below="@id/distance"
-            android:layout_toEndOf="@id/avgspeed"
-            android:textSize="20sp"
-            android:layout_marginStart="15dp" />
+             <TextView
+                 android:id="@+id/distance"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:text="Distance :"
+                 android:layout_marginTop="20dp"
+                 android:textSize="20sp"
+                 android:layout_below="@id/time" />
 
+             <com.google.android.material.textview.MaterialTextView
+                 android:id="@+id/tvDistance"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginTop="20dp"
+                 android:text="DISTANCE"
+                 android:layout_below="@id/time"
+                 android:layout_toEndOf="@id/distance"
+                 android:layout_marginStart="15dp"
+                 android:textSize="20sp" />
+
+             <TextView
+                 android:id="@+id/avgspeed"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:text="AvG Speed :"
+                 android:layout_marginTop="20dp"
+                 android:textSize="20sp"
+                 android:layout_below="@id/distance" />
+
+
+             <com.google.android.material.textview.MaterialTextView
+                 android:id="@+id/tvAvgSpeed"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginTop="20dp"
+                 android:text="AVGSPEED"
+                 android:layout_below="@id/distance"
+                 android:layout_toEndOf="@id/avgspeed"
+                 android:textSize="20sp"
+                 android:layout_marginStart="15dp" />
+
+             <TextView
+                 android:id="@+id/steps"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:text="total Steps :"
+                 android:layout_marginTop="20dp"
+                 android:textSize="20sp"
+                 android:layout_below="@id/avgspeed"
+
+                 />
+
+
+             <com.google.android.material.textview.MaterialTextView
+                 android:id="@+id/tvsteps"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginTop="20dp"
+                 android:text="steps"
+                 android:layout_below="@id/avgspeed"
+                 android:layout_toEndOf="@id/avgspeed"
+                 android:textSize="20sp"
+                 android:layout_marginStart="15dp" />
+
+         </RelativeLayout>
+     </ScrollView>
 
     </RelativeLayout>
 </layout>
