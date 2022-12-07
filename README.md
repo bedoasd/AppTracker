@@ -1,7 +1,9 @@
 
 
 
-<Br/>Link:: https://www.youtube.com/watch?v=YgBgMqOk_lc&t=194s&ab_channel=AbdulrahmanSalama
+<Br/>Link:: https://www.youtube.com/watch?v=YgBgMqOk_lc
+
+
 
 
 
